@@ -18,7 +18,7 @@ const STATUSES = {
 };
 
 const TICKETS = [
-  { id: 10, headline: "Login page", status: 4, projectId: 1, projectName: "Web", sprint: 7, sprintName: "S7", editorId: 5, editorFirstname: "An", priority: 2, type: "task", dateToFinish: "2026-11-01 23:59:59", description: "<p>Build &amp; ship</p>" },
+  { id: 10, headline: "Login page", status: 4, projectId: 1, projectName: "Web", sprint: 7, sprintName: "S7", editorId: 5, editorFirstname: "An", priority: 2, type: "task", dateToFinish: "2026-11-01 23:59:59", editFrom: "2026-10-01 00:00:00", planHours: "3", description: "<p>Build &amp; ship</p>" },
   { id: 11, headline: "Old bug", status: 0, projectId: 1, projectName: "Web", sprint: 7, editorId: 5, type: "bug" },
   { id: 12, headline: "Archived thing", status: -1, projectId: 1, sprint: 0, editorId: 6 },
   { id: 13, headline: "Other project", status: 3, projectId: 2, sprint: 8, editorId: 5 },
@@ -187,6 +187,8 @@ describe("read tools", () => {
       sprintName: "S7",
       assigneeId: 5,
       dueDate: "2026-11-01",
+      startDate: "2026-10-01",
+      plannedHours: 3,
       description: "Build & ship",
       url: `${BASE}/#/tickets/showTicket/10`,
     });
@@ -228,11 +230,12 @@ describe("write tools", () => {
   it("leantime_create_task defaults to status New and sends optional fields", async () => {
     const { data } = await call("leantime_create_task", {
       project_id: 1, headline: "New thing", sprint_id: 7, assignee_id: 5, priority: 3, due_date: "2026-11-05",
+      start_date: "2026-10-01", planned_hours: 3,
     });
     expect(data).toMatchObject({ id: 99, status: "New", assigneeId: 5 });
     expect(lastWrite().params.values).toEqual({
       headline: "New thing", projectId: 1, type: "task", status: "3",
-      editorId: 5, sprint: 7, priority: 3, dateToFinish: "2026-11-05",
+      editorId: 5, sprint: 7, priority: 3, dateToFinish: "2026-11-05", editFrom: "2026-10-01", planHours: 3,
     });
   });
 
@@ -290,6 +293,17 @@ describe("write tools", () => {
       id: 10,
       params: { headline: "Renamed", dateToFinish: "2026-12-01", sprint: 9 },
     });
+  });
+
+  it("leantime_update_task patches start date and planned hours", async () => {
+    const { data } = await call("leantime_update_task", { task_id: 10, start_date: "2026-10-01", planned_hours: 3 });
+    expect(data.updated).toEqual(["editFrom", "planHours"]);
+    expect(lastWrite().params).toEqual({ id: 10, params: { editFrom: "2026-10-01", planHours: 3 } });
+  });
+
+  it("leantime_get_task reports no start date or hours when unset", async () => {
+    const { data } = await call("leantime_get_task", { id: 13 });
+    expect(data).toMatchObject({ startDate: "—", plannedHours: null });
   });
 
   it("leantime_update_task with no fields errors without writing", async () => {

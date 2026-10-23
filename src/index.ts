@@ -20,7 +20,7 @@ import { registerTools } from "./tools.js";
 config({ path: process.env.DOTENV_CONFIG_PATH, quiet: true });
 
 async function main(): Promise<void> {
-  const server = new McpServer({ name: "leantime-anymate-mcp", version: "1.0.0" });
+  const server = new McpServer({ name: "leantime-anymate-mcp", version: "1.1.0" });
 
   registerTools(server);
 

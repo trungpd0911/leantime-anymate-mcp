@@ -52,6 +52,7 @@ const priority = z
   .min(1)
   .max(5)
   .describe("1 Critical, 2 High, 3 Medium, 4 Low, 5 Lowest");
+const plannedHours = z.number().min(0).describe('Estimated hours, Leantime "Planned Hours" (e.g. 3 or 1.5)');
 
 export function registerTools(server: McpServer): void {
   // -- Read -----------------------------------------------------------------
@@ -154,7 +155,7 @@ Args:
   - exclude_done (boolean, optional): drop tasks whose status is Done or Archived
   - limit (number, optional): max tasks returned (1-200, default LEANTIME_PICK_LIMIT or 30)
 
-Returns JSON: { total, count, tasks: [{ id, headline, type, status, priority, projectId, projectName, sprintId, sprintName, assigneeId, assignee, dueDate, url, description }] }
+Returns JSON: { total, count, tasks: [{ id, headline, type, status, priority, projectId, projectName, sprintId, sprintName, assigneeId, assignee, dueDate, startDate, plannedHours, url, description }] }
 (total = matches before the limit; description is a short snippet — use leantime_get_task for the full text.)`,
       inputSchema: {
         assignee_id: id.optional().describe("Assignee user id"),
@@ -192,7 +193,7 @@ Returns JSON: { total, count, tasks: [{ id, headline, type, status, priority, pr
 Args:
   - id (string|number): the task id
 
-Returns JSON: { found: true, id, headline, type, status, priority, projectId, projectName, sprintId, sprintName, assigneeId, assignee, dueDate, url, description } or { found: false, id }`,
+Returns JSON: { found: true, id, headline, type, status, priority, projectId, projectName, sprintId, sprintName, assigneeId, assignee, dueDate, startDate, plannedHours, url, description } or { found: false, id }`,
       inputSchema: { id: id.describe("Task id") },
       annotations: READ,
     },
@@ -257,6 +258,10 @@ Args:
   - priority (number, optional): 1 Critical, 2 High, 3 Medium, 4 Low, 5 Lowest
   - type (string, optional): task (default), story or bug
   - due_date (string, optional): YYYY-MM-DD
+  - start_date (string, optional): YYYY-MM-DD, Leantime "Work Start"
+  - planned_hours (number, optional): Leantime "Planned Hours"
+
+Dates are always YYYY-MM-DD. Convert the user's dates first (e.g. Vietnamese 01/10/2026 = 2026-10-01).
 
 Returns JSON: { id, headline, status, assigneeId, url }`,
       inputSchema: {
@@ -268,10 +273,12 @@ Returns JSON: { id, headline, status, assigneeId, url }`,
         priority: priority.optional(),
         type: z.enum(["task", "story", "bug"]).optional().describe("Ticket type, default task"),
         due_date: isoDate.optional().describe("Due date, YYYY-MM-DD"),
+        start_date: isoDate.optional().describe('Work start date ("Work Start"), YYYY-MM-DD'),
+        planned_hours: plannedHours.optional(),
       },
       annotations: CREATE,
     },
-    async ({ project_id, headline, sprint_id, assignee_id, description, priority, type, due_date }) => {
+    async ({ project_id, headline, sprint_id, assignee_id, description, priority, type, due_date, start_date, planned_hours }) => {
       try {
         const task = await createTask({
           projectId: project_id,
@@ -282,6 +289,8 @@ Returns JSON: { id, headline, status, assigneeId, url }`,
           priority,
           type,
           dueDate: due_date,
+          startDate: start_date,
+          plannedHours: planned_hours,
         });
         return ok({ ...task });
       } catch (e) {
@@ -355,6 +364,10 @@ Args:
   - due_date (string, optional): YYYY-MM-DD
   - sprint_id (string|number, optional): move to this sprint
   - priority (number, optional): 1 Critical, 2 High, 3 Medium, 4 Low, 5 Lowest
+  - start_date (string, optional): YYYY-MM-DD, Leantime "Work Start"
+  - planned_hours (number, optional): Leantime "Planned Hours"
+
+Dates are always YYYY-MM-DD. Convert the user's dates first (e.g. Vietnamese 01/10/2026 = 2026-10-01).
 
 Returns JSON: { id, updated: [field names], url }`,
       inputSchema: {
@@ -364,12 +377,24 @@ Returns JSON: { id, updated: [field names], url }`,
         due_date: isoDate.optional().describe("New due date, YYYY-MM-DD"),
         sprint_id: id.optional().describe("Move to this sprint id"),
         priority: priority.optional(),
+        start_date: isoDate.optional().describe('New work start date ("Work Start"), YYYY-MM-DD'),
+        planned_hours: plannedHours.optional(),
       },
       annotations: UPDATE,
     },
-    async ({ task_id, headline, description, due_date, sprint_id, priority }) => {
+    async ({ task_id, headline, description, due_date, sprint_id, priority, start_date, planned_hours }) => {
       try {
-        return ok(await updateTask(task_id, { headline, description, dueDate: due_date, sprintId: sprint_id, priority }));
+        return ok(
+          await updateTask(task_id, {
+            headline,
+            description,
+            dueDate: due_date,
+            sprintId: sprint_id,
+            priority,
+            startDate: start_date,
+            plannedHours: planned_hours,
+          })
+        );
       } catch (e) {
         return fail(e);
       }

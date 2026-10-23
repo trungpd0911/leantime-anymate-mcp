@@ -131,10 +131,10 @@ if something is missing. See [`.env.example`](.env.example).
 | `leantime_list_tasks` | read | Filters: `assignee_id`, `project_id`, `sprint_id`, `status` (name), `exclude_done` (Done + Archived), `limit` |
 | `leantime_get_task` | read | Full detail of one task |
 | `leantime_create_sprint` | write | `project_id, name, start_date, end_date` (YYYY-MM-DD) |
-| `leantime_create_task` | write | `project_id, headline`, optional `sprint_id, assignee_id, description, priority, type, due_date`; status "New" |
+| `leantime_create_task` | write | `project_id, headline`, optional `sprint_id, assignee_id, description, priority, type, due_date, start_date, planned_hours`; status "New" |
 | `leantime_assign_task` | write, idempotent | `task_id, assignee_id` |
 | `leantime_set_task_status` | write, idempotent | `task_id, status` (name, case-insensitive) |
-| `leantime_update_task` | write, idempotent | `task_id` + any of `headline, description, due_date, sprint_id, priority` |
+| `leantime_update_task` | write, idempotent | `task_id` + any of `headline, description, due_date, sprint_id, priority, start_date, planned_hours` |
 
 Notes:
 
@@ -143,6 +143,8 @@ Notes:
 - Assign, set status and update use Leantime's `tickets.patch`, which changes only the fields that
   are sent. `tickets.updateTicket` is avoided because in v3.5.4 it overwrites every column, so any
   field you leave out is blanked.
+- `start_date` is Leantime's "Work Start" (`editFrom`) and `planned_hours` is "Planned Hours"
+  (`planHours`). All dates are `YYYY-MM-DD`.
 - If the user did not name an assignee, `leantime_create_task` tells the agent to ask the user to
   confirm one first.
 

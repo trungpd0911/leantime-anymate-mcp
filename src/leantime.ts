@@ -21,6 +21,8 @@ export interface LeantimeTicket {
   editorFirstname?: string | null;
   editorLastname?: string | null;
   dateToFinish?: string | null;
+  editFrom?: string | null;
+  planHours?: string | number | null;
   [k: string]: unknown;
 }
 
@@ -160,6 +162,8 @@ export interface NewTicketValues {
   status?: number | string;
   sprint?: number | string;
   dateToFinish?: string;
+  editFrom?: string;
+  planHours?: number;
 }
 
 /** Create a ticket and return its new id. */

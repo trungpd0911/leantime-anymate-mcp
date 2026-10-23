@@ -199,6 +199,8 @@ export interface TaskSummary {
   assigneeId: string | number | null;
   assignee: string;
   dueDate: string;
+  startDate: string;
+  plannedHours: number | null;
   url: string;
   description: string;
 }
@@ -223,6 +225,8 @@ function summarize(t: LeantimeTicket, statuses: StatusSummary[], fullDescription
     assigneeId: isSet(t.editorId) ? (t.editorId as string | number) : null,
     assignee: [t.editorFirstname, t.editorLastname].filter(Boolean).join(" ") || "—",
     dueDate: fmtDate(t.dateToFinish),
+    startDate: fmtDate(t.editFrom),
+    plannedHours: Number(t.planHours) > 0 ? Number(t.planHours) : null,
     url: ticketUrl(t.id),
     description: fullDescription || desc.length <= SNIPPET_MAX ? desc : `${desc.slice(0, SNIPPET_MAX)}…`,
   };
@@ -281,6 +285,8 @@ export interface CreateTaskInput {
   priority?: number;
   type?: string;
   dueDate?: string;
+  startDate?: string;
+  plannedHours?: number;
 }
 
 export interface CreateTaskResult {
@@ -306,6 +312,8 @@ export async function createTask(input: CreateTaskInput): Promise<CreateTaskResu
     ...(input.description ? { description: input.description } : {}),
     ...(input.priority ? { priority: input.priority } : {}),
     ...(input.dueDate ? { dateToFinish: input.dueDate } : {}),
+    ...(input.startDate ? { editFrom: input.startDate } : {}),
+    ...(input.plannedHours !== undefined ? { planHours: input.plannedHours } : {}),
   });
 
   return {
@@ -334,6 +342,8 @@ export interface UpdateTaskInput {
   dueDate?: string;
   sprintId?: string | number;
   priority?: number;
+  startDate?: string;
+  plannedHours?: number;
 }
 
 /** Patch only the provided fields; everything else on the task is left untouched. */
@@ -344,8 +354,12 @@ export async function updateTask(id: string | number, input: UpdateTaskInput) {
   if (input.dueDate !== undefined) params.dateToFinish = input.dueDate;
   if (input.sprintId !== undefined) params.sprint = input.sprintId;
   if (input.priority !== undefined) params.priority = input.priority;
+  if (input.startDate !== undefined) params.editFrom = input.startDate;
+  if (input.plannedHours !== undefined) params.planHours = input.plannedHours;
   if (!Object.keys(params).length) {
-    throw new Error("Nothing to update: pass at least one of headline, description, due_date, sprint_id, priority.");
+    throw new Error(
+      "Nothing to update: pass at least one of headline, description, due_date, sprint_id, priority, start_date, planned_hours."
+    );
   }
   await patchTicket(id, params);
   return { id, updated: Object.keys(params), url: ticketUrl(id) };
