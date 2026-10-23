@@ -1,0 +1,36 @@
+{
+  "name": "leantime-anymate-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for managing AnyMate's Leantime: sprints, tasks, assignees and statuses. AI-free and portable across Claude Code and Codex",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "leantime-anymate-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "check": "node scripts/check.mjs",
+    "clean": "rm -rf dist"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^17.4.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
