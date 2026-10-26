@@ -194,6 +194,25 @@ describe("read tools", () => {
     });
   });
 
+  it("leantime_get_task keeps image URLs as [image: ...] markers", async () => {
+    overrides["leantime.rpc.tickets.tickets.getAll"] = [
+      {
+        id: 20,
+        headline: "With images",
+        status: 3,
+        description:
+          '<p>See below</p><p><img src="/files/get?module=ticket&amp;id=7" alt="x"></p><p><img alt="y" src="https://cdn.test/a.png"></p>',
+      },
+      { id: 21, headline: "Image only", status: 3, description: '<p><img src="/files/get?id=9"></p>' },
+    ];
+    const withText = await call("leantime_get_task", { id: 20 });
+    expect(withText.data.description).toBe(
+      `See below\n[image: ${BASE}/files/get?module=ticket&id=7]\n\n[image: https://cdn.test/a.png]`,
+    );
+    const imageOnly = await call("leantime_get_task", { id: 21 });
+    expect(imageOnly.data.description).toBe(`[image: ${BASE}/files/get?id=9]`);
+  });
+
   it("leantime_get_task reports a missing task", async () => {
     const { data } = await call("leantime_get_task", { id: 404 });
     expect(data).toEqual({ found: false, id: 404 });

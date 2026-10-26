@@ -188,7 +188,7 @@ Returns JSON: { total, count, tasks: [{ id, headline, type, status, priority, pr
     "leantime_get_task",
     {
       title: "Get Leantime Task",
-      description: `Fetch one task's full detail, with the description stripped of HTML. Read-only.
+      description: `Fetch one task's full detail, with the description stripped of HTML (images appear as "[image: URL]" markers). Read-only.
 
 Args:
   - id (string|number): the task id

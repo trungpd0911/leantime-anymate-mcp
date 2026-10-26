@@ -56,6 +56,17 @@ export function stripHtml(s: string): string {
     .trim();
 }
 
+/** Replace each <img> with an "[image: <absolute url>]" marker so stripHtml() doesn't drop it. */
+function markImages(html: string): string {
+  const { baseUrl } = leantimeConfig();
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    const src = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
+    const url = decodeEntities(src?.[1] ?? src?.[2] ?? "").trim();
+    if (!url) return "";
+    return `\n[image: ${new URL(url, `${baseUrl.replace(/\/$/, "")}/`).href}]\n`;
+  });
+}
+
 function isZeroDate(s?: string | null): boolean {
   return !s || s.startsWith("0000-00-00");
 }
@@ -211,7 +222,7 @@ function statusName(t: LeantimeTicket, statuses: StatusSummary[]): string {
 }
 
 function summarize(t: LeantimeTicket, statuses: StatusSummary[], fullDescription = false): TaskSummary {
-  const desc = stripHtml(String(t.description ?? ""));
+  const desc = stripHtml(markImages(String(t.description ?? "")));
   return {
     id: t.id,
     headline: oneLine(t.headline),
