@@ -213,6 +213,15 @@ describe("read tools", () => {
     expect(imageOnly.data.description).toBe(`[image: ${BASE}/files/get?id=9]`);
   });
 
+  it("leantime_get_task survives a malformed image src", async () => {
+    overrides["leantime.rpc.tickets.tickets.getAll"] = [
+      { id: 22, headline: "Bad img", status: 3, description: '<p>Hi</p><img src="http://[bad">' },
+    ];
+    const { isError, data } = await call("leantime_get_task", { id: 22 });
+    expect(isError).toBe(false);
+    expect(data.description).toBe("Hi\n[image: http://[bad]");
+  });
+
   it("leantime_get_task reports a missing task", async () => {
     const { data } = await call("leantime_get_task", { id: 404 });
     expect(data).toEqual({ found: false, id: 404 });

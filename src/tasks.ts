@@ -63,7 +63,13 @@ function markImages(html: string): string {
     const src = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
     const url = decodeEntities(src?.[1] ?? src?.[2] ?? "").trim();
     if (!url) return "";
-    return `\n[image: ${new URL(url, `${baseUrl.replace(/\/$/, "")}/`).href}]\n`;
+    let href = url;
+    try {
+      href = new URL(url, `${baseUrl.replace(/\/$/, "")}/`).href;
+    } catch {
+      // Malformed src: keep it raw rather than failing the whole task read.
+    }
+    return `\n[image: ${href}]\n`;
   });
 }
 
