@@ -26,7 +26,7 @@ it. No manual clone is needed. Always pin a release tag (`#v1.0.0`); see
 
 ```bash
 claude mcp add -s user leantime-anymate \
-  -e LEANTIME_BASE_URL=https://leantime.example.com \
+  -e LEANTIME_BASE_URL=https://leantime.anymateme.store/ \
   -e LEANTIME_API_KEY=your-key \
   -e LEANTIME_USER_ID=123 \
   -- npx -y github:trungpd0911/leantime-anymate-mcp#v1.0.0
@@ -41,7 +41,7 @@ This writes to `~/.claude.json`. You can also add it by hand there, or in a proj
       "command": "npx",
       "args": ["-y", "github:trungpd0911/leantime-anymate-mcp#v1.0.0"],
       "env": {
-        "LEANTIME_BASE_URL": "https://leantime.example.com",
+        "LEANTIME_BASE_URL": "https://leantime.anymateme.store/",
         "LEANTIME_API_KEY": "your-key",
         "LEANTIME_USER_ID": "123"
       }
@@ -56,7 +56,7 @@ Do not commit a `.mcp.json` that contains your API key.
 
 ```bash
 codex mcp add leantime-anymate \
-  --env LEANTIME_BASE_URL=https://leantime.example.com \
+  --env LEANTIME_BASE_URL=https://leantime.anymateme.store/ \
   --env LEANTIME_API_KEY=your-key \
   --env LEANTIME_USER_ID=123 \
   -- npx -y github:trungpd0911/leantime-anymate-mcp#v1.0.0
@@ -68,7 +68,7 @@ This writes to `~/.codex/config.toml`. The same entry by hand:
 [mcp_servers.leantime-anymate]
 command = "npx"
 args = ["-y", "github:trungpd0911/leantime-anymate-mcp#v1.0.0"]
-env = { LEANTIME_BASE_URL = "https://leantime.example.com", LEANTIME_API_KEY = "your-key", LEANTIME_USER_ID = "123" }
+env = { LEANTIME_BASE_URL = "https://leantime.anymateme.store/", LEANTIME_API_KEY = "your-key", LEANTIME_USER_ID = "123" }
 ```
 
 ### 3. Restart and verify
