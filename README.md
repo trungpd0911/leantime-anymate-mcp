@@ -1,6 +1,7 @@
 # leantime-anymate-mcp
 
-MCP server (stdio) that lets an agent (Claude Code, Codex, ...) manage Leantime: list projects,
+MCP server (stdio, or Streamable HTTP for claude.ai) that lets an agent (Claude Code, Codex,
+claude.ai, ...) manage Leantime: list projects,
 users, sprints and statuses; list and filter tasks; create sprints and tasks; assign, change status
 and update tasks. It has no delete tools.
 
@@ -80,6 +81,53 @@ Restart the client. The first start is slower because `npx` downloads and builds
 
 Then ask the agent to "list Leantime statuses".
 
+## Use it in claude.ai (web, desktop and mobile apps)
+
+claude.ai cannot start a local process, so it only connects to MCP servers reached over a public
+HTTPS URL. Run this server in HTTP mode on a host you control, then add it as a custom connector.
+
+**1. Make a secret token.** Anyone with the URL can use your Leantime API key, so the HTTP mode
+refuses to start without a random `MCP_AUTH_TOKEN` of at least 32 characters:
+
+```bash
+openssl rand -hex 32
+```
+
+**2. Deploy.** Any host that runs Node 18+ or Docker and gives you HTTPS works (Render, Fly.io,
+Railway, a VPS behind a reverse proxy, ...). Set these env variables on the host, never in the repo:
+
+| Variable | Value |
+|-|-|
+| `LEANTIME_BASE_URL`, `LEANTIME_API_KEY`, `LEANTIME_USER_ID` | As in [Configuration](#configuration-env) |
+| `MCP_AUTH_TOKEN` | The token from step 1 |
+| `MCP_TRANSPORT` | `http` (already set in the Dockerfile) |
+| `PORT` | Port to listen on (default `3000`; most hosts set it for you) |
+| `HOST` | Bind address (default `0.0.0.0`) |
+
+With Docker, the repo's `Dockerfile` is all you need. Without Docker, use build command
+`npm ci && npm run build` and start command `node dist/index.js --http`.
+
+Check it: `https://your-host/health` returns `{"status":"ok"}`.
+
+**3. Add the connector.** In claude.ai open *Settings → Connectors → Add custom connector*, give it
+a name, and paste the URL with the token as the last path segment:
+
+```
+https://your-host/mcp/<MCP_AUTH_TOKEN>
+```
+
+Leave the OAuth fields empty. Then enable the connector in a chat (the tools menu) and ask Claude to
+"list Leantime statuses".
+
+The token is part of the URL, so treat the whole URL like a password: do not paste it in chats,
+screenshots or issues. If it leaks, change `MCP_AUTH_TOKEN` on the host and update the connector.
+Other clients that can send headers can use `https://your-host/mcp` with
+`Authorization: Bearer <MCP_AUTH_TOKEN>` instead.
+
+The HTTP mode is stateless: each request gets a fresh server, so it scales to zero and restarts
+safely. Leantime calls still go out from the host, so the host must be able to reach your Leantime
+instance.
+
 ## Updating
 
 New versions are published as Git tags (`v1.1.0`, ...). See the repo's tags or releases for what
@@ -116,6 +164,7 @@ This also clears the cache of other `npx` tools. They are downloaded again the n
 | `LEANTIME_API_KEY` | yes | Sent as the `x-api-key` header |
 | `LEANTIME_USER_ID` | recommended | Your numeric user id; suggested as the default assignee |
 | `LEANTIME_PICK_LIMIT` | no | Default max tasks returned by `leantime_list_tasks` (default 30) |
+| `MCP_AUTH_TOKEN` | HTTP mode only | Shared secret for the HTTP endpoint (see [claude.ai](#use-it-in-claudeai-web-desktop-and-mobile-apps)) |
 
 The server starts without env. Each tool checks the env when it is called and returns a clear error
 if something is missing. See [`.env.example`](.env.example).

@@ -36,3 +36,7 @@ export function leantimeConfig(): LeantimeConfig {
   }
   return { baseUrl, apiKey, userId: process.env.LEANTIME_USER_ID };
 }
+
+/** Server identity reported to MCP clients. */
+export const SERVER_NAME = "leantime-anymate-mcp";
+export const SERVER_VERSION = "1.1.0";

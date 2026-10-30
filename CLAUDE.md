@@ -19,7 +19,7 @@ liệt kê task theo status/assignee/sprint, update task.
 ## Secret policy (luật cứng)
 
 - Không đọc `.env`, `.env.*`, file key/credential, hay dump env (`printenv`, `env`, `set`, `export`).
-- Chỉ document **tên biến**: `LEANTIME_BASE_URL`, `LEANTIME_API_KEY`, `LEANTIME_USER_ID`, `LEANTIME_PICK_LIMIT`.
+- Chỉ document **tên biến**: `LEANTIME_BASE_URL`, `LEANTIME_API_KEY`, `LEANTIME_USER_ID`, `LEANTIME_PICK_LIMIT`, `MCP_AUTH_TOKEN` (HTTP mode).
   Không ghi giá trị thật, URL instance thật hay key vào docs, log, commit, test.
 - Test dùng mock `fetch`. Nếu cần chạy với instance thật (verify `addSprint`, `getStatusLabels`),
   nói rõ biến cần thiết và nhờ user chạy hoặc đưa kết quả đã redact. Không tự đọc secret để chạy.
